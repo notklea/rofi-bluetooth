@@ -178,6 +178,29 @@ toggle_trust() {
     fi
 }
 
+# Checks if a device is blocked
+device_blocked() {
+    device_info=$(bluetoothctl info "$1")
+    if echo "$device_info" | grep -q "Blocked: yes"; then
+        echo "Blocked: yes"
+        return 0
+    else
+        echo "Blocked: no"
+        return 1
+    fi
+}
+
+# Toggles device blocked
+toggle_blocked() {
+    if device_blocked "$1"; then
+        bluetoothctl unblock "$1"
+        device_menu "$device"
+    else
+        bluetoothctl block "$1"
+        device_menu "$device"
+    fi
+}
+
 # Prints a short string with the current bluetooth status
 # Useful for status bars like polybar, etc.
 print_status() {
@@ -228,7 +251,8 @@ device_menu() {
     fi
     paired=$(device_paired "$mac")
     trusted=$(device_trusted "$mac")
-    options="$connected\n$paired\n$trusted\n$divider\n$goback\nExit"
+    blocked=$(device_blocked "$mac")
+    options="$connected\n$paired\n$trusted\n$blocked\n$divider\n$goback\nExit"
 
     # Open rofi menu, read chosen option
     chosen="$(echo -e "$options" | $rofi_command "$device_name")"
@@ -246,6 +270,9 @@ device_menu() {
             ;;
         "$trusted")
             toggle_trust "$mac"
+            ;;
+        "$blocked")
+            toggle_blocked "$mac"
             ;;
         "$goback")
             show_menu
