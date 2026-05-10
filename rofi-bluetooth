@@ -20,6 +20,10 @@
 divider="---------"
 goback="Back"
 
+bluetoothctl() {
+	printf '%s\nquit\n' "$*" | env bluetoothctl
+}
+
 # Checks if bluetooth controller is powered on
 power_on() {
     if bluetoothctl show | grep -q "Powered: yes"; then
